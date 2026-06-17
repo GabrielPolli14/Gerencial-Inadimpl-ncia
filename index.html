@@ -1,5 +1,6 @@
 <meta charset="utf-8">
 <title>Inadimplência Gerencial · Autoglass</title>
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%23050A34'/%3E%3Cpath d='M34 12h7l13 40h-8.5L34 12z' fill='%23fff'/%3E%3Cpath d='M27 32l-8 20h8.5l4.5-13L27 32z' fill='%2373C6FF'/%3E%3C/svg%3E">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;900&display=swap" rel="stylesheet">
@@ -98,6 +99,19 @@
   .rowlbl{font-weight:600;font-size:13px}
   .cell{display:flex;align-items:center;gap:7px}
   input.money{width:128px;background:var(--field);color:var(--ink);border:1px solid var(--line);border-radius:9px;padding:8px 10px;font-size:13px;font-family:inherit;text-align:right;font-weight:500}
+  input.totinput.auto::placeholder{color:var(--blue);opacity:.65;font-style:italic}
+  .sumtog{display:flex;align-items:center;gap:5px;font-size:12px;color:var(--muted);font-weight:500;white-space:nowrap;cursor:pointer;user-select:none}
+  .sumtog input{width:15px;height:15px;accent-color:var(--blue);cursor:pointer}
+  .snaplist{display:flex;flex-direction:column}
+  .snaprow{display:flex;align-items:center;gap:12px;padding:13px 4px;border-bottom:1px solid var(--line2)}
+  .snaprow:last-child{border-bottom:0}
+  .snapinfo{flex:1;min-width:0}
+  .snapdate{font-weight:600;font-size:13.5px}
+  .snapmeta{font-size:11.5px;color:var(--muted);font-weight:300;margin-top:2px}
+  .tabs .cnt{display:inline-flex;align-items:center;justify-content:center;min-width:18px;height:18px;padding:0 5px;border-radius:9px;background:rgba(0,0,0,.08);font-size:10.5px;font-weight:700;margin-left:4px}
+  .tabs button.on .cnt{background:rgba(255,255,255,.25)}
+  td.ro{font-weight:500;color:var(--ink)}
+  td.ro.totcell{font-weight:700}
   input.money:focus{outline:2px solid var(--blue);border-color:var(--blue);background:#fff}
   .totcell{font-weight:700;font-size:14px}
   .arrow{font-size:11px;width:12px;display:inline-block;text-align:center}
@@ -191,6 +205,7 @@
       <button class="on" data-view="evolucao"><svg class="ic" viewBox="0 0 24 24"><path d="M3 3v18h18"/><path d="M7 14l4-4 3 3 5-6"/></svg><span class="lbl">Evolução mensal</span></button>
       <button data-view="detalhado"><svg class="ic" viewBox="0 0 24 24"><path d="M3 5h18M3 12h18M3 19h18"/></svg><span class="lbl">Detalhado</span></button>
       <button data-view="plano"><svg class="ic" viewBox="0 0 24 24"><path d="M9 11l3 3 8-8"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg><span class="lbl">Plano de ações</span></button>
+      <button data-view="historico"><svg class="ic" viewBox="0 0 24 24"><path d="M3 3v5h5"/><path d="M3.05 13A9 9 0 1 0 6 5.3L3 8"/><path d="M12 7v5l3 3"/></svg><span class="lbl">Histórico</span></button>
     </nav>
     <div class="pin"><button id="pinBtn" title="Fixar menu"><svg class="ic" viewBox="0 0 24 24"><path d="M9 4v6l-2 4h10l-2-4V4M12 18v3"/></svg></button></div>
   </aside>
@@ -205,6 +220,7 @@
         </div>
         <button class="kebab" id="kebab" title="Mais opções"><svg viewBox="0 0 24 24"><circle cx="12" cy="5" r="2"/><circle cx="12" cy="12" r="2"/><circle cx="12" cy="19" r="2"/></svg></button>
         <div class="menu" id="menu">
+          <button id="snapBtn"><svg class="ic" viewBox="0 0 24 24"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>Salvar foto desta tela</button>
           <button data-view="config"><svg class="ic" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19 12a7 7 0 0 0-.1-1l2-1.6-2-3.4-2.4 1a7 7 0 0 0-1.7-1l-.4-2.5h-4l-.4 2.5a7 7 0 0 0-1.7 1l-2.4-1-2 3.4 2 1.6a7 7 0 0 0 0 2l-2 1.6 2 3.4 2.4-1a7 7 0 0 0 1.7 1l.4 2.5h4l.4-2.5a7 7 0 0 0 1.7-1l2.4 1 2-3.4-2-1.6a7 7 0 0 0 .1-1z"/></svg>Configurações</button>
           <button id="boletimBtn"><svg class="ic" viewBox="0 0 24 24"><path d="M4 4h16v16H4z"/><path d="M4 8h16M8 12h8M8 16h5"/></svg>Gerar boletim</button>
         </div>
@@ -219,10 +235,12 @@
 
 <script>
 const DEFAULT_MOTIVES=[
-  {key:"devolucao",label:"Devolução"},
-  {key:"financeiro",label:"Financeiro"},
-  {key:"cobrar",label:"Cobrar Cia"},
-  {key:"analisar",label:"Analisar"},
+  {key:"devolucao",label:"Devolução",sum:true},
+  {key:"conciliar",label:"Conciliar",sum:false},
+  {key:"cobrar",label:"Cobrar Cia",sum:true},
+  {key:"analisar",label:"Analisar",sum:true},
+  {key:"trat_fin",label:"Tratativa Financeiro",sum:true},
+  {key:"trat_ceven",label:"Tratativa Ceven",sum:true},
 ];
 const SEED_MONTHS=["JAN","FEV","MAR","ABR","MAI"].map(l=>({id:"m_"+l.toLowerCase()+"26",label:l,yr:"2026"}));
 const SEED_PERIODS=[
@@ -233,30 +251,64 @@ const SEED_PERIODS=[
 ];
 let DB={
   motives:null, months:null, periods:null,
-  detail:{}, actions:[], pwd:"admin", refMonthId:null
+  detail:{}, actions:[], pwd:"admin", refMonthId:null, snapshots:[]
 };
 let confirmDel=null, sideTimer=null;
 
 function blankVals(){return Object.fromEntries(DB.motives.map(m=>[m.key,null]));}
+const KEY="inad:db2";
+// lê de localStorage (durável no GitHub) e, se não houver, de window.storage (ambiente Claude)
+async function readStore(){
+  try{const ls=localStorage.getItem(KEY);if(ls)return ls;}catch(e){}
+  try{if(window.storage){const r=await window.storage.get(KEY);if(r&&r.value)return r.value;}}catch(e){}
+  return null;
+}
 async function load(){
-  try{const r=await window.storage.get("inad:db2");if(r&&r.value)DB=JSON.parse(r.value);}catch(e){}
+  try{const raw=await readStore();if(raw)DB=JSON.parse(raw);}catch(e){}
   if(!DB.motives) DB.motives=DEFAULT_MOTIVES.slice();
   if(!DB.months) DB.months=SEED_MONTHS.map(m=>({...m,vals:blankVals()}));
   if(!DB.periods) DB.periods=SEED_PERIODS.slice();
   if(!DB.detail) DB.detail={};
   if(!DB.actions) DB.actions=[];
+  if(!DB.snapshots) DB.snapshots=[];
   if(!DB.pwd) DB.pwd="admin";
+  migrateMotives();
   // mês de referência: se não definido ou apagado, usa o último
   if(!DB.refMonthId || !DB.months.some(m=>m.id===DB.refMonthId))
     DB.refMonthId = DB.months.length?DB.months[DB.months.length-1].id:null;
 }
+// Ajusta dados antigos para o novo modelo de motivos sem perder valores já digitados.
+function migrateMotives(){
+  // 1) "financeiro" -> "conciliar" (renomeia chave e rótulo, fora da soma)
+  const fin=DB.motives.find(m=>m.key==="financeiro");
+  if(fin && !DB.motives.some(m=>m.key==="conciliar")){
+    fin.key="conciliar";
+    if(fin.label==="Financeiro")fin.label="Conciliar";
+    fin.sum=false;
+    // migra os valores guardados sob a chave antiga
+    DB.months.forEach(m=>{if(m.vals && "financeiro" in m.vals){m.vals.conciliar=m.vals.financeiro;delete m.vals.financeiro;}});
+    Object.values(DB.detail||{}).forEach(o=>{if(o&&"financeiro" in o){o.conciliar=o.financeiro;delete o.financeiro;}});
+    DB.actions.forEach(a=>{if(a.motive==="financeiro")a.motive="conciliar";});
+  }
+  // 2) garante a flag sum em todos (default: soma, exceto conciliar)
+  DB.motives.forEach(m=>{if(m.sum===undefined)m.sum=(m.key!=="conciliar");});
+  // 3) adiciona os dois novos motivos se não existirem
+  const ensure=(key,label)=>{if(!DB.motives.some(m=>m.key===key))DB.motives.push({key,label,sum:true});};
+  ensure("trat_fin","Tratativa Financeiro");
+  ensure("trat_ceven","Tratativa Ceven");
+  // 4) garante que todo mês tenha entrada para cada motivo
+  DB.months.forEach(m=>{if(!m.vals)m.vals={};DB.motives.forEach(mt=>{if(!(mt.key in m.vals))m.vals[mt.key]=null;});});
+}
 function refMonth(){return DB.months.find(m=>m.id===DB.refMonthId)||DB.months[DB.months.length-1]||{label:"—",yr:""};}
 function updateBadge(){const m=refMonth();const el=document.getElementById("badgeMonth");if(el)el.textContent=m.label+" / "+m.yr;}
 let st=null;
+// salva nos dois lugares disponíveis; localStorage é o que persiste no GitHub Pages
 async function save(){
   clearTimeout(st);
-  try{await window.storage.set("inad:db2",JSON.stringify(DB));toast("Salvo automaticamente");}
-  catch(e){/* silencioso: não incomoda o usuário */}
+  const data=JSON.stringify(DB);let okAny=false;
+  try{localStorage.setItem(KEY,data);okAny=true;}catch(e){}
+  try{if(window.storage){await window.storage.set(KEY,data);okAny=true;}}catch(e){}
+  if(okAny)toast("Salvo automaticamente"); /* se nenhum funcionar, não incomoda */
 }
 function queueSave(){clearTimeout(st);st=setTimeout(save,450);}
 function toast(m){const t=document.getElementById("toast");document.getElementById("toastMsg").textContent=m;t.classList.add("show");clearTimeout(t._h);t._h=setTimeout(()=>t.classList.remove("show"),1400);}
@@ -265,7 +317,7 @@ const BRL=n=>n==null||isNaN(n)?"—":n.toLocaleString("pt-BR",{style:"currency",
 const MI=n=>"R$ "+((n||0)/1e6).toLocaleString("pt-BR",{minimumFractionDigits:2,maximumFractionDigits:2})+" mi";
 const fmt=n=>n==null?"":n.toLocaleString("pt-BR",{minimumFractionDigits:2,maximumFractionDigits:2});
 function parseBR(s){if(s==null)return null;s=String(s).trim();if(s==="")return null;s=s.replace(/[R$\s.]/g,"").replace(",",".");const n=parseFloat(s);return isNaN(n)?null:n;}
-function monthTotal(m){return DB.motives.reduce((a,x)=>a+(m.vals[x.key]||0),0);}
+function monthTotal(m){return DB.motives.reduce((a,x)=>a+(x.sum?(m.vals[x.key]||0):0),0);}
 function arrow(c,p){if(p==null||c==null)return{cls:"flat",ch:"–"};if(c>p+.005)return{cls:"up",ch:"▲"};if(c<p-.005)return{cls:"down",ch:"▼"};return{cls:"flat",ch:"–"};}
 const uid=p=>p+Math.random().toString(36).slice(2,8);
 
@@ -281,10 +333,12 @@ document.getElementById("pinBtn").addEventListener("click",()=>{
 });
 
 /* ---------- routing ---------- */
-const TITLES={evolucao:["Inadimplência Gerencial","Visão consolidada"],detalhado:["Detalhado","Por período e motivo"],plano:["Plano de ações","Acompanhamento de cobrança"],config:["Configurações","Ajustes da ferramenta"]};
+const TITLES={evolucao:["Inadimplência Gerencial","Visão consolidada"],detalhado:["Detalhado","Por período e motivo"],plano:["Plano de ações","Acompanhamento de cobrança"],historico:["Histórico","Fotos salvas das telas"],config:["Configurações","Ajustes da ferramenta"]};
 let unlocked=false;
+let currentView="evolucao"; // usada pelo "Salvar foto" contextual
 function go(v){
   confirmDel=null;
+  if(["evolucao","detalhado","plano","historico"].includes(v))currentView=v;
   document.querySelectorAll("#nav button").forEach(b=>b.classList.toggle("on",b.dataset.view===v));
   const t=TITLES[v]||TITLES.evolucao;
   document.getElementById("pageTitle").textContent=t[0];
@@ -293,6 +347,7 @@ function go(v){
   if(v==="evolucao")renderEvolucao();
   else if(v==="detalhado")renderDetalhado();
   else if(v==="plano")renderPlano();
+  else if(v==="historico")renderHistorico();
   else if(v==="config")unlocked?renderConfig():renderGate();
 }
 document.getElementById("nav").addEventListener("click",e=>{const b=e.target.closest("button");if(b)go(b.dataset.view);});
@@ -304,6 +359,7 @@ document.getElementById("kebab").addEventListener("click",e=>{e.stopPropagation(
 document.addEventListener("click",e=>{if(!menu.contains(e.target)&&e.target.id!=="kebab")closeMenu();});
 menu.addEventListener("click",e=>{const b=e.target.closest("button");if(!b)return;if(b.dataset.view)go(b.dataset.view);});
 document.getElementById("boletimBtn").addEventListener("click",openBoletim);
+document.getElementById("snapBtn").addEventListener("click",saveSnapshot);
 
 /* seletor de mês de referência (badge) */
 const refBadge=document.getElementById("refBadge"), refMenu=document.getElementById("refMenu");
@@ -316,21 +372,23 @@ document.addEventListener("click",e=>{if(!refMenu.contains(e.target)&&!refBadge.
 refMenu.addEventListener("click",e=>{const b=e.target.closest("button");if(!b)return;DB.refMonthId=b.dataset.id;closeRefMenu();updateBadge();save();});
 
 /* ---------- EVOLUÇÃO MENSAL ---------- */
-/* Total é manual: usa m.total se preenchido; senão cai na soma dos motivos (sugestão). */
+/* Total é 100% manual: só vale o que o usuário digitar (não soma os motivos). */
+/* Total: usa o valor manual se digitado; senão soma automática dos motivos marcados. */
 function effTotal(m){return (m.total!=null)?m.total:monthTotal(m);}
 function renderEvolucao(){
   const totals=DB.months.map(effTotal);
   const lastM=DB.months[DB.months.length-1]||{label:"—",yr:""};
   updateBadge();
-  // Layout gerencial: meses nas linhas, motivos nas colunas, TOTAL na última coluna (manual)
-  const head=`<th>Mês</th>${DB.motives.map(m=>`<th>${m.label}</th>`).join("")}<th class="tot">Total</th>`;
+  // Layout gerencial: meses nas linhas, motivos nas colunas, TOTAL na última coluna
+  const head=`<th>Mês</th>${DB.motives.map(m=>`<th>${m.label}${m.sum?"":'<span style="display:block;font-size:9px;color:var(--faint);font-weight:400;text-transform:none;letter-spacing:0">fora da soma</span>'}</th>`).join("")}<th class="tot">Total</th>`;
   const rows=DB.months.map((m,i)=>{
     const tds=DB.motives.map(mot=>{
       const v=m.vals[mot.key],pv=i>0?DB.months[i-1].vals[mot.key]:null,a=arrow(v,pv);
       return `<td><div class="cell"><input class="money num" data-mi="${i}" data-k="${mot.key}" value="${fmt(v)}" placeholder="0,00"><span class="arrow ${a.cls}">${a.ch}</span></div></td>`;
     }).join("");
     const t=effTotal(m),pt=i>0?effTotal(DB.months[i-1]):null,a=arrow(t,pt);
-    const tot=`<td><div class="cell"><input class="money num totinput" data-mi="${i}" data-total="1" value="${fmt(m.total)}" placeholder="${fmt(monthTotal(m))||'0,00'}"><span class="arrow ${a.cls}">${a.ch}</span></div></td>`;
+    const suggestion=fmt(monthTotal(m))||"0,00";
+    const tot=`<td><div class="cell"><input class="money num totinput${m.total!=null?'':' auto'}" data-mi="${i}" data-total="1" value="${fmt(m.total)}" placeholder="${suggestion}" title="${m.total!=null?'Total manual (sobrescrito)':'Soma automática — digite para sobrescrever'}"><span class="arrow ${a.cls}">${a.ch}</span></div></td>`;
     return `<tr><td><span class="mlabel">${m.label}<span class="yr">${m.yr}</span></span></td>${tds}${tot}</tr>`;
   }).join("");
   document.getElementById("content").innerHTML=`
@@ -340,7 +398,7 @@ function renderEvolucao(){
         <span><span class="sw" style="background:var(--down)"></span>Reduziu (bom)</span>
         <span><span class="sw" style="background:var(--up)"></span>Aumentou (alerta)</span>
         <span><span class="sw" style="background:var(--faint)"></span>Sem variação</span>
-        <span style="margin-left:auto;color:var(--faint)">Total é manual — em branco, sugere a soma dos motivos</span>
+        <span style="margin-left:auto;color:var(--faint)">Total = soma automática (Conciliar fica de fora) · você pode sobrescrever manualmente</span>
       </div></div>
     <div class="panel"><div class="ph"><span class="acc"></span><h3>Evolução do número geral</h3><span class="hint">total por mês</span></div><div class="pb"><svg class="spark" id="sparkTotal" viewBox="0 0 1000 260" preserveAspectRatio="xMidYMid meet"></svg></div></div>`;
   drawLine(totals,DB.months);
@@ -359,22 +417,22 @@ function renderEvolucao(){
     inp.addEventListener("blur",renderEvolucao);
   });
 }
-function drawLine(data,labels){
+function hasData(m){return m.total!=null || DB.motives.some(x=>m.vals[x.key]!=null);}
+function drawLine(rawData,rawLabels){
   const svg=document.getElementById("sparkTotal");if(!svg)return;
-  if(data.filter(v=>v!=null&&v>0).length<2){svg.innerHTML='<text x="40" y="130" fill="#9aa2c2" font-size="14">Preencha ao menos dois meses para ver a evolução</text>';return;}
+  // plota apenas meses que têm algum dado (total manual ou algum motivo preenchido)
+  const idx=DB.months.map((m,i)=>i).filter(i=>hasData(DB.months[i]));
+  const data=idx.map(i=>rawData[i]);
+  const labels=idx.map(i=>rawLabels[i]);
+  if(data.length<2){svg.innerHTML='<text x="40" y="130" fill="#9aa2c2" font-size="14">Preencha ao menos dois meses para ver a evolução</text>';return;}
   const W=1000,H=260,px=46,top=40,bot=44;
   const mn=Math.min(...data),mx=Math.max(...data),rng=(mx-mn)||1;
-  // padding vertical proporcional para a linha não colar nas bordas
   const pad=rng*0.18;
   const lo=mn-pad,hi=mx+pad,vr=(hi-lo)||1;
   const X=i=>px+(i/(data.length-1))*(W-2*px);
   const Y=v=>H-bot-((v-lo)/vr)*(H-top-bot);
   const pts=data.map((v,i)=>[X(i),Y(v)]);
-
-  // gridlines horizontais suaves
   const grid=[0,.5,1].map(f=>{const y=top+f*(H-top-bot);return `<line x1="${px}" y1="${y.toFixed(1)}" x2="${W-px}" y2="${y.toFixed(1)}" stroke="#eef1f8" stroke-width="1"/>`;}).join("");
-
-  // curva suavizada via Catmull-Rom -> Bézier cúbica
   function smooth(p){
     if(p.length<2)return "";
     let d=`M${p[0][0].toFixed(2)} ${p[0][1].toFixed(2)}`;
@@ -398,7 +456,7 @@ function drawLine(data,labels){
 /* ---------- DETALHADO (por período) ---------- */
 function detVal(pid,mk){return (DB.detail[pid]&&DB.detail[pid][mk]!=null)?DB.detail[pid][mk]:null;}
 function setDet(pid,mk,v){if(!DB.detail[pid])DB.detail[pid]={};DB.detail[pid][mk]=v;}
-function periodTotal(pid){return DB.motives.reduce((a,m)=>a+(detVal(pid,m.key)||0),0);}
+function periodTotal(pid){return DB.motives.reduce((a,m)=>a+(m.sum?(detVal(pid,m.key)||0):0),0);}
 function renderDetalhado(){
   const lastM=DB.months[DB.months.length-1]||{label:"—",yr:""};
   updateBadge();
@@ -504,9 +562,10 @@ function renderConfig(){
       <div class="cfgbar"><button class="btn" data-add="period">+ Adicionar período</button></div>`;
   }else if(cfgTab==="motivos"){
     body=`<div class="ph" style="border:0;padding:0 0 8px"><span class="acc"></span><h3>Motivos (linhas das tabelas)</h3></div>
-      <p class="lede" style="margin:0 0 14px">Valem para a Evolução, o Detalhado e o Plano de ações.</p>
+      <p class="lede" style="margin:0 0 14px">Valem para a Evolução, o Detalhado e o Plano de ações. Marque <b>"Soma"</b> nos motivos que compõem a inadimplência. Os desmarcados (ex: Conciliar) ficam de fora do Total.</p>
       <div class="cfg-section">${DB.motives.map((m,i)=>`<div class="cfgrow"><span class="idx">${i+1}</span>
         <input class="grow" data-t="motive" data-i="${i}" data-f="label" value="${m.label}" placeholder="Nome do motivo">
+        <label class="sumtog" title="Entra na soma do Total?"><input type="checkbox" data-sum="${i}" ${m.sum?"checked":""}> Soma</label>
         <button class="iconbtn ${confirmDel==='motive'+i?'confirm':''}" data-del="motive" data-i="${i}">${confirmDel==='motive'+i?'<svg viewBox="0 0 24 24"><path d="M20 6L9 17l-5-5"/></svg>':'<svg viewBox="0 0 24 24"><path d="M3 6h18M8 6V4h8v2M19 6l-1 14H6L5 6"/></svg>'}</button></div>`).join("")}</div>
       <div class="cfgbar"><button class="btn" data-add="motive">+ Adicionar motivo</button></div>`;
   }else if(cfgTab==="acesso"){
@@ -515,7 +574,14 @@ function renderConfig(){
       <div class="cfgbar" style="margin-top:0"><button class="btn" id="savePwd">Salvar senha</button></div>
       <div class="ph" style="border:0;padding:24px 0 8px"><span class="acc"></span><h3>Boletim por e-mail</h3></div>
       <p class="lede" style="margin:0 0 14px">Gera o texto do boletim com a evolução do mês e os planos executados, pronto para copiar e colar no seu e-mail.</p>
-      <div class="cfgbar" style="margin-top:0"><button class="btn ghost" id="genBoletim">Gerar boletim agora</button></div>`;
+      <div class="cfgbar" style="margin-top:0"><button class="btn ghost" id="genBoletim">Gerar boletim agora</button></div>
+      <div class="ph" style="border:0;padding:24px 0 8px"><span class="acc"></span><h3>Backup dos dados</h3></div>
+      <p class="lede" style="margin:0 0 14px">Os dados ficam salvos neste navegador. Para guardar uma cópia ou levar para outro computador, exporte um arquivo e importe-o depois. <b>Importar substitui os dados atuais.</b></p>
+      <div class="cfgbar" style="margin-top:0">
+        <button class="btn" id="exportBtn">Exportar backup (.json)</button>
+        <button class="btn ghost" id="importBtn">Importar backup</button>
+        <input type="file" id="importFile" accept="application/json,.json" style="display:none">
+      </div>`;
   }
   document.getElementById("content").innerHTML=`
     <div class="eyebrow">Ajustes da ferramenta</div><h2 class="ttl">Configurações</h2>
@@ -533,12 +599,16 @@ function renderConfig(){
       queueSave();
     });
   });
+  // toggle "Soma" dos motivos (recalcula totais ao mudar)
+  document.querySelectorAll("input[data-sum]").forEach(cb=>{
+    cb.addEventListener("change",()=>{DB.motives[+cb.dataset.sum].sum=cb.checked;save();});
+  });
   // add
   document.querySelectorAll("[data-add]").forEach(b=>b.onclick=()=>{
     const t=b.dataset.add;confirmDel=null;
     if(t==="month")DB.months.push({id:uid("m_"),label:"NOVO",yr:String(new Date().getFullYear()),vals:blankVals()});
     if(t==="period")DB.periods.push({id:uid("p_"),label:"Novo período"});
-    if(t==="motive")DB.motives.push({key:uid("k_"),label:"Novo motivo"});
+    if(t==="motive"){const k=uid("k_");DB.motives.push({key:k,label:"Novo motivo",sum:true});DB.months.forEach(m=>{m.vals[k]=null;});}
     save();renderConfig();
   });
   // delete
@@ -554,6 +624,122 @@ function renderConfig(){
   if(sp)sp.onclick=()=>{const v=document.getElementById("newPwd").value.trim();if(!v){toast("Senha não pode ser vazia");return;}DB.pwd=v;save();toast("Senha atualizada");};
   const gb=document.getElementById("genBoletim");
   if(gb)gb.onclick=openBoletim;
+  // backup
+  const eb=document.getElementById("exportBtn");
+  if(eb)eb.onclick=()=>doExport();
+  const ib=document.getElementById("importBtn"),ifile=document.getElementById("importFile");
+  if(ib&&ifile){
+    ib.onclick=()=>ifile.click();
+    ifile.onchange=()=>{
+      const f=ifile.files[0];if(!f)return;
+      const reader=new FileReader();
+      reader.onload=()=>{
+        try{
+          const obj=JSON.parse(reader.result);
+          if(!obj||!obj.months||!obj.motives){toast("Arquivo inválido");return;}
+          if(!confirm("Importar este backup vai substituir todos os dados atuais. Continuar?")){ifile.value="";return;}
+          DB=obj;
+          if(!DB.pwd)DB.pwd="admin";
+          if(!DB.detail)DB.detail={};
+          if(!DB.actions)DB.actions=[];
+          if(!DB.snapshots)DB.snapshots=[];
+          migrateMotives();
+          if(!DB.refMonthId||!DB.months.some(m=>m.id===DB.refMonthId))DB.refMonthId=DB.months.length?DB.months[DB.months.length-1].id:null;
+          save();updateBadge();renderConfig();toast("Backup importado");
+        }catch(e){toast("Não consegui ler o arquivo");}
+        ifile.value="";
+      };
+      reader.readAsText(f);
+    };
+  }
+}
+
+/* ---------- SNAPSHOTS (FOTOS) ---------- */
+const VIEW_NAMES={evolucao:"Evolução mensal",detalhado:"Detalhado",plano:"Plano de ações"};
+function snapLabel(v){return VIEW_NAMES[v]||v;}
+function saveSnapshot(){
+  closeMenu();
+  const v=currentView;
+  if(!VIEW_NAMES[v]){toast("Abra Evolução, Detalhado ou Plano para salvar a foto");return;}
+  // copia profunda (sem referências) dos dados daquela aba + os motivos vigentes (p/ leitura correta)
+  const clone=x=>JSON.parse(JSON.stringify(x));
+  const snap={id:uid("s_"),view:v,ts:Date.now(),motives:clone(DB.motives)};
+  if(v==="evolucao")snap.months=clone(DB.months);
+  else if(v==="detalhado"){snap.periods=clone(DB.periods);snap.detail=clone(DB.detail);}
+  else if(v==="plano")snap.actions=clone(DB.actions);
+  DB.snapshots.push(snap);
+  save();
+  toast("Foto salva — "+snapLabel(v));
+}
+function fmtTs(ts){const d=new Date(ts);const p=n=>String(n).padStart(2,"0");return `${p(d.getDate())}/${p(d.getMonth()+1)}/${d.getFullYear()} às ${p(d.getHours())}:${p(d.getMinutes())}`;}
+
+let histTab="evolucao";
+function renderHistorico(){
+  const tabs=[["evolucao","Evolução"],["detalhado","Detalhado"],["plano","Plano de ações"]];
+  const list=DB.snapshots.filter(s=>s.view===histTab).sort((a,b)=>b.ts-a.ts);
+  const items=list.map(s=>{
+    const isC=confirmDel==="snap"+s.id;
+    let resumo="";
+    if(s.view==="evolucao"){const tt=s.months.reduce((a,m)=>{const t=(m.total!=null)?m.total:s.motives.reduce((x,mt)=>x+(mt.sum?(m.vals[mt.key]||0):0),0);return a;},0);resumo=`${s.months.length} meses`;}
+    else if(s.view==="detalhado")resumo=`${s.periods.length} períodos`;
+    else if(s.view==="plano")resumo=`${s.actions.length} ações`;
+    return `<div class="snaprow">
+      <div class="snapinfo"><div class="snapdate">${fmtTs(s.ts)}</div><div class="snapmeta">${snapLabel(s.view)} · ${resumo}</div></div>
+      <button class="btn ghost sm" data-open="${s.id}">Abrir</button>
+      <button class="iconbtn ${isC?'confirm':''}" data-snapdel="${s.id}">${isC?'<svg viewBox="0 0 24 24"><path d="M20 6L9 17l-5-5"/></svg>':'<svg viewBox="0 0 24 24"><path d="M3 6h18M8 6V4h8v2M19 6l-1 14H6L5 6"/></svg>'}</button>
+    </div>`;
+  }).join("");
+  document.getElementById("content").innerHTML=`
+    <p class="lede">Fotos congeladas de cada tela, salvas por você ao longo do tempo. Use o botão <b>"Salvar foto desta tela"</b> (menu ⋮) enquanto estiver na aba que quer fotografar. Aqui elas ficam organizadas por tipo — clique em <b>Abrir</b> para ver como o quadro estava naquela data.</p>
+    <div class="tabs">${tabs.map(t=>`<button class="${histTab===t[0]?'on':''}" data-htab="${t[0]}">${t[1]} <span class="cnt">${DB.snapshots.filter(s=>s.view===t[0]).length}</span></button>`).join("")}</div>
+    <div class="panel"><div class="pb" style="padding:14px 20px">
+      ${list.length?`<div class="snaplist">${items}</div>`:'<div style="padding:30px 4px;color:var(--faint);font-weight:300">Nenhuma foto de '+snapLabel(histTab)+' ainda. Vá até a aba, clique no menu ⋮ e escolha "Salvar foto desta tela".</div>'}
+    </div></div>`;
+  document.querySelectorAll("[data-htab]").forEach(b=>b.onclick=()=>{histTab=b.dataset.htab;confirmDel=null;renderHistorico();});
+  document.querySelectorAll("[data-open]").forEach(b=>b.onclick=()=>openSnapshot(b.dataset.open));
+  document.querySelectorAll("[data-snapdel]").forEach(b=>b.onclick=()=>{
+    const id=b.dataset.snapdel;
+    if(confirmDel==="snap"+id){const i=DB.snapshots.findIndex(s=>s.id===id);if(i>=0)DB.snapshots.splice(i,1);confirmDel=null;save();renderHistorico();}
+    else{confirmDel="snap"+id;renderHistorico();}
+  });
+}
+
+// monta HTML (somente leitura) de uma foto
+function snapTableHTML(s){
+  const mots=s.motives;
+  if(s.view==="evolucao"){
+    const mt=m=>mots.reduce((a,x)=>a+(x.sum?(m.vals[x.key]||0):0),0);
+    const eff=m=>(m.total!=null)?m.total:mt(m);
+    const head=`<th>Mês</th>${mots.map(m=>`<th>${m.label}${m.sum?"":' <span style="font-size:9px;color:var(--faint)">(fora)</span>'}</th>`).join("")}<th class="tot">Total</th>`;
+    const rows=s.months.map(m=>`<tr><td><span class="mlabel">${m.label}<span class="yr">${m.yr}</span></span></td>${mots.map(x=>`<td class="ro num">${m.vals[x.key]!=null?BRL(m.vals[x.key]):'—'}</td>`).join("")}<td class="ro num totcell">${BRL(eff(m))}</td></tr>`).join("");
+    return `<table><thead><tr>${head}</tr></thead><tbody>${rows}</tbody></table>`;
+  }
+  if(s.view==="detalhado"){
+    const dv=(pid,k)=>(s.detail[pid]&&s.detail[pid][k]!=null)?s.detail[pid][k]:null;
+    const pt=pid=>mots.reduce((a,m)=>a+(m.sum?(dv(pid,m.key)||0):0),0);
+    const head=`<th>Motivo</th>${s.periods.map(p=>`<th>${p.label}</th>`).join("")}`;
+    const rows=mots.map(m=>`<tr><td><span class="rowlbl">${m.label}</span></td>${s.periods.map(p=>`<td class="ro num">${dv(p.id,m.key)!=null?BRL(dv(p.id,m.key)):'—'}</td>`).join("")}</tr>`).join("");
+    const tot=`<tr class="totalrow"><td>TOTAL</td>${s.periods.map(p=>`<td class="ro num">${BRL(pt(p.id))}</td>`).join("")}</tr>`;
+    return `<table><thead><tr>${head}</tr></thead><tbody>${rows}${tot}</tbody></table>`;
+  }
+  if(s.view==="plano"){
+    const ST={aberto:"Aberto",andamento:"Em andamento",concluido:"Concluído",atrasado:"Atrasado"};
+    const rows=s.actions.map(a=>{const mo=mots.find(m=>m.key===a.motive);return `<tr><td>${mo?mo.label:'—'}</td><td>${a.action||'—'}</td><td>${a.owner||'—'}</td><td>${a.due||'—'}</td><td class="num">${a.forecast!=null?BRL(a.forecast):'—'}</td><td><span class="pill ${a.status}">${ST[a.status]||a.status}</span></td></tr>`;}).join("");
+    return `<table class="act-table"><thead><tr><th>Motivo</th><th>Ação</th><th>Responsável</th><th>Prazo</th><th>Previsão</th><th>Status</th></tr></thead><tbody>${rows||'<tr><td colspan="6" style="padding:24px;color:var(--faint)">Sem ações nesta foto.</td></tr>'}</tbody></table>`;
+  }
+  return "";
+}
+function openSnapshot(id){
+  const s=DB.snapshots.find(x=>x.id===id);if(!s)return;
+  document.getElementById("modalTitle").textContent="Foto · "+snapLabel(s.view);
+  document.getElementById("modalBody").innerHTML=`
+    <p class="lede" style="margin:0 0 14px">Registrado em <b>${fmtTs(s.ts)}</b>. Esta é uma foto congelada (somente leitura) — os dados aqui não mudam.</p>
+    <div style="overflow-x:auto;border:1px solid var(--line2);border-radius:10px">${snapTableHTML(s)}</div>
+    <div class="cfgbar"><button class="btn ghost" id="closeSnap">Fechar</button></div>`;
+  // amplia o modal para caber a tabela
+  document.querySelector("#modalBg .modal").style.maxWidth="980px";
+  document.getElementById("modalBg").classList.add("show");
+  document.getElementById("closeSnap").onclick=()=>{document.querySelector("#modalBg .modal").style.maxWidth="";closeModal();};
 }
 
 /* ---------- BOLETIM ---------- */
@@ -592,6 +778,50 @@ function openBoletim(){
 function closeModal(){document.getElementById("modalBg").classList.remove("show");}
 document.getElementById("modalClose").onclick=closeModal;
 document.getElementById("modalBg").addEventListener("click",e=>{if(e.target.id==="modalBg")closeModal();});
+
+/* ---------- EXPORTAR BACKUP ---------- */
+function backupFilename(){const d=new Date(),pad=n=>String(n).padStart(2,"0");return `inadimplencia-backup-${d.getFullYear()}${pad(d.getMonth()+1)}${pad(d.getDate())}.json`;}
+function doExport(){
+  const data=JSON.stringify(DB,null,2);
+  const fname=backupFilename();
+  let downloaded=false;
+  // tenta o download direto via blob
+  try{
+    const blob=new Blob([data],{type:"application/json"});
+    const url=URL.createObjectURL(blob);
+    const a=document.createElement("a");
+    a.href=url;a.download=fname;a.rel="noopener";
+    document.body.appendChild(a);
+    a.click();
+    setTimeout(()=>{URL.revokeObjectURL(url);a.remove();},1500);
+    downloaded=true;
+  }catch(e){downloaded=false;}
+  // sempre abre o modal com o texto como rede de segurança (download pode ser bloqueado no preview/iframe)
+  showExportModal(data,fname,downloaded);
+}
+function showExportModal(data,fname,downloaded){
+  document.getElementById("modalTitle").textContent="Exportar backup";
+  document.getElementById("modalBody").innerHTML=`
+    <p class="lede" style="margin:0 0 12px">${downloaded?`Tentei baixar <b>${fname}</b> para a sua pasta de Downloads. Se o download não aparecer (acontece quando a tela roda dentro de um preview), use os botões abaixo.`:`O download automático não está disponível aqui. Copie o texto abaixo e salve como um arquivo <b>.json</b>, ou use o botão "Baixar arquivo".`}</p>
+    <textarea id="exportTxt" readonly>${data}</textarea>
+    <div class="cfgbar">
+      <button class="btn" id="copyExp">Copiar texto</button>
+      <button class="btn ghost" id="dlExp">Baixar arquivo</button>
+      <button class="btn ghost" id="closeExp">Fechar</button>
+    </div>`;
+  document.getElementById("modalBg").classList.add("show");
+  document.getElementById("copyExp").onclick=()=>{const ta=document.getElementById("exportTxt");ta.select();try{document.execCommand("copy");navigator.clipboard&&navigator.clipboard.writeText(data).catch(()=>{});toast("Backup copiado");}catch(e){toast("Selecione e copie manualmente");}};
+  document.getElementById("dlExp").onclick=()=>{
+    try{
+      const blob=new Blob([data],{type:"application/json"});
+      const url=URL.createObjectURL(blob);
+      const a=document.createElement("a");a.href=url;a.download=fname;
+      document.body.appendChild(a);a.click();setTimeout(()=>{URL.revokeObjectURL(url);a.remove();},1500);
+      toast("Download iniciado");
+    }catch(e){toast("Use 'Copiar texto' e salve como .json");}
+  };
+  document.getElementById("closeExp").onclick=closeModal;
+}
 
 (async()=>{await load();go("evolucao");})();
 </script>
