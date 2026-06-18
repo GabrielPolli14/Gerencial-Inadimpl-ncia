@@ -251,7 +251,8 @@
         <div class="menu" id="menu">
           <button id="snapBtn"><svg class="ic" viewBox="0 0 24 24"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>Salvar foto desta tela</button>
           <button data-view="config"><svg class="ic" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19 12a7 7 0 0 0-.1-1l2-1.6-2-3.4-2.4 1a7 7 0 0 0-1.7-1l-.4-2.5h-4l-.4 2.5a7 7 0 0 0-1.7 1l-2.4-1-2 3.4 2 1.6a7 7 0 0 0 0 2l-2 1.6 2 3.4 2.4-1a7 7 0 0 0 1.7 1l.4 2.5h4l.4-2.5a7 7 0 0 0 1.7-1l2.4 1 2-3.4-2-1.6a7 7 0 0 0 .1-1z"/></svg>Configurações</button>
-          <button id="boletimBtn"><svg class="ic" viewBox="0 0 24 24"><path d="M4 4h16v16H4z"/><path d="M4 8h16M8 12h8M8 16h5"/></svg>Gerar boletim</button>
+          <button id="boletimBtn"><svg class="ic" viewBox="0 0 24 24"><path d="M4 4h16v16H4z"/><path d="M4 8h16M8 12h8M8 16h5"/></svg>Boletim visual</button>
+          <button id="emailBtn"><svg class="ic" viewBox="0 0 24 24"><path d="M4 4h16a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2z"/><path d="M22 6l-10 7L2 6"/></svg>E-mail de report</button>
         </div>
       </div>
     </div>
@@ -390,6 +391,7 @@ document.getElementById("kebab").addEventListener("click",e=>{e.stopPropagation(
 document.addEventListener("click",e=>{if(!menu.contains(e.target)&&e.target.id!=="kebab")closeMenu();});
 menu.addEventListener("click",e=>{const b=e.target.closest("button");if(!b)return;if(b.dataset.view)go(b.dataset.view);});
 document.getElementById("boletimBtn").addEventListener("click",openBoletim);
+document.getElementById("emailBtn").addEventListener("click",openEmailReport);
 document.getElementById("snapBtn").addEventListener("click",saveSnapshot);
 
 /* seletor de mês de referência (badge) */
@@ -605,7 +607,7 @@ function renderConfig(){
       <div class="cfgbar" style="margin-top:0"><button class="btn" id="savePwd">Salvar senha</button></div>
       <div class="ph" style="border:0;padding:24px 0 8px"><span class="acc"></span><h3>Boletim por e-mail</h3></div>
       <p class="lede" style="margin:0 0 14px">Gera o texto do boletim com a evolução do mês e os planos executados, pronto para copiar e colar no seu e-mail.</p>
-      <div class="cfgbar" style="margin-top:0"><button class="btn ghost" id="genBoletim">Gerar boletim agora</button></div>
+      <div class="cfgbar" style="margin-top:0"><button class="btn ghost" id="genBoletim">Boletim visual</button><button class="btn ghost" id="genEmail">E-mail de report</button></div>
       <div class="ph" style="border:0;padding:24px 0 8px"><span class="acc"></span><h3>Backup dos dados</h3></div>
       <p class="lede" style="margin:0 0 14px">Os dados ficam salvos neste navegador. Para guardar uma cópia ou levar para outro computador, exporte um arquivo e importe-o depois. <b>Importar substitui os dados atuais.</b></p>
       <div class="cfgbar" style="margin-top:0">
@@ -655,6 +657,8 @@ function renderConfig(){
   if(sp)sp.onclick=()=>{const v=document.getElementById("newPwd").value.trim();if(!v){toast("Senha não pode ser vazia");return;}DB.pwd=v;save();toast("Senha atualizada");};
   const gb=document.getElementById("genBoletim");
   if(gb)gb.onclick=openBoletim;
+  const ge=document.getElementById("genEmail");
+  if(ge)ge.onclick=openEmailReport;
   // backup
   const eb=document.getElementById("exportBtn");
   if(eb)eb.onclick=()=>doExport();
@@ -938,7 +942,8 @@ function openBoletim(){
   const html=`<!doctype html><html lang="pt-BR"><head><meta charset="utf-8"><title>Boletim de Inadimplência — ${lastM.label}/${lastM.yr}</title>
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;900&display=swap" rel="stylesheet">
   <style>
-    *{box-sizing:border-box;margin:0;padding:0}
+    *{box-sizing:border-box;margin:0;padding:0;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+    html{-webkit-print-color-adjust:exact;print-color-adjust:exact}
     body{font-family:"Poppins",sans-serif;color:#11183a;background:#f4f6fb;padding:32px;font-weight:400}
     .sheet{max-width:1100px;margin:0 auto;background:#fff;border-radius:16px;overflow:hidden;box-shadow:0 4px 24px rgba(16,24,58,.08)}
     .bhead{background:#050A34;color:#fff;padding:30px 38px;display:flex;justify-content:space-between;align-items:flex-end}
@@ -976,7 +981,7 @@ function openBoletim(){
     .toolbar button{font-family:inherit;font-size:13px;font-weight:600;border:0;border-radius:10px;padding:10px 18px;cursor:pointer}
     .pbtn{background:#0A64FF;color:#fff}
     .cbtn{background:#fff;color:#0A64FF;border:1px solid #cfd6ff}
-    @media print{body{background:#fff;padding:0}.toolbar{display:none}.sheet{box-shadow:none;border-radius:0;max-width:100%}.sec{break-inside:avoid}}
+    @media print{body{background:#fff;padding:0}.toolbar{display:none}.sheet{box-shadow:none;border-radius:0;max-width:100%}.sec{break-inside:avoid}.bhead{background:#050A34 !important}.hero .big{background:#0A64FF !important}.bhead,.hero .big,.bhead h1,.bhead .sub,.bhead .ref .m,.bhead .ref .t{-webkit-print-color-adjust:exact;print-color-adjust:exact}}
   </style></head><body>
   <div class="toolbar"><button class="pbtn" onclick="window.print()">Imprimir / Salvar PDF</button><button class="cbtn" onclick="window.close()">Fechar</button></div>
   <div class="sheet">
@@ -1010,6 +1015,83 @@ function openBoletim(){
   }
 }
 function closeModal(){document.getElementById("modalBg").classList.remove("show");}
+
+/* ---------- E-MAIL DE REPORT (texto executivo) ---------- */
+function openEmailReport(){
+  closeMenu();closeRefMenu();
+  const totals=DB.months.map(effTotal);
+  const ri=DB.months.findIndex(m=>m.id===DB.refMonthId);
+  const idx=ri>=0?ri:DB.months.length-1;
+  const last=totals[idx],prev=idx>0?totals[idx-1]:null;
+  const lastM=DB.months[idx]||{label:"—",yr:"",vals:{}};
+  const prevM=idx>0?DB.months[idx-1]:null;
+  const pct=prev?Math.abs((last-prev)/prev*100):0;
+  const pctBR=pct.toLocaleString("pt-BR",{minimumFractionDigits:1,maximumFractionDigits:1});
+  // nomes por extenso a partir da abreviação
+  const MESEXT={JAN:"janeiro",FEV:"fevereiro",MAR:"março",ABR:"abril",MAI:"maio",JUN:"junho",JUL:"julho",AGO:"agosto",SET:"setembro",OUT:"outubro",NOV:"novembro",DEZ:"dezembro"};
+  const ext=l=>MESEXT[(l||"").toUpperCase().slice(0,3)]||(l||"").toLowerCase();
+  const mesNome=`${ext(lastM.label)}/${lastM.yr}`;
+
+  // abertura por motivo, ordenada do maior para o menor
+  const ordered=DB.motives.map(m=>({m,v:lastM.vals?lastM.vals[m.key]||0:0})).sort((a,b)=>b.v-a.v);
+  const linhasMotivo=ordered.map(o=>{
+    const extra=o.m.sum?"":" (crédito já em casa, não compõe o número-alvo de recuperação)";
+    return `• ${o.m.label}: ${BRL(o.v)}${extra}`;
+  }).join("\n");
+
+  // os 2 maiores motivos que entram na soma (foco)
+  const foco=ordered.filter(o=>o.m.sum).slice(0,2).map(o=>o.m.label);
+
+  // planos em andamento -> frentes em execução
+  const ongoing=DB.actions.filter(a=>a.status!=="concluido");
+  const linhasFrente=ongoing.length?ongoing.map(a=>{
+    const mo=DB.motives.find(m=>m.key===a.motive);
+    const ret=a.forecast!=null?` — retorno estimado de ${BRL(a.forecast)}`:"";
+    const resp=a.owner?` — resp.: ${a.owner}`:"";
+    return `• ${a.action||"(ação a definir)"}${ret}${resp}`;
+  }).join("\n"):"• (nenhuma frente em andamento registrada)";
+  const potencial=ongoing.reduce((s,a)=>s+(a.forecast||0),0);
+
+  // tendência textual
+  let tend="";
+  if(prev!=null){
+    if(last<prev)tend=`uma redução de ${pctBR}% frente a ${ext(prevM.label)}, mantendo a trajetória de queda que buscamos construir.`;
+    else if(last>prev)tend=`um aumento de ${pctBR}% frente a ${ext(prevM.label)}, que estamos endereçando com os planos em andamento.`;
+    else tend=`estabilidade frente a ${ext(prevM.label)}.`;
+  }
+
+  let txt=`Olá a todos,\n\n`;
+  txt+=`Segue o resultado consolidado da inadimplência referente a ${mesNome}.\n\n`;
+  txt+=`Fechamos o mês em ${BRL(last)}`;
+  txt+=prev!=null?`, ${tend}\n\n`:`.\n\n`;
+  txt+=`Abertura por motivo:\n${linhasMotivo}\n\n`;
+  if(foco.length)txt+=`O grosso do saldo segue concentrado em ${foco.join(" e ")}, que são justamente o foco dos planos em andamento.\n\n`;
+  txt+=`Frentes em execução:\n${linhasFrente}\n\n`;
+  if(potencial>0)txt+=`Com os planos previstos, temos cerca de ${BRL(potencial)} em potencial de recuperação mapeado para os próximos ciclos.\n\n`;
+  // notas do mês entram como observações, se houver
+  const notas=DB.notes.filter(n=>n.monthId===lastM.id);
+  if(notas.length){
+    txt+=`Observações do mês:\n`;
+    notas.forEach(n=>{txt+=`• ${n.title?n.title+": ":""}${n.body||""}\n`;});
+    txt+=`\n`;
+  }
+  txt+=`Sigo à disposição para detalhar qualquer ponto.`;
+
+  document.getElementById("modalTitle").textContent="E-mail de report — "+lastM.label+"/"+lastM.yr;
+  document.getElementById("modalBody").innerHTML=`
+    <p class="lede" style="margin:0 0 12px">Texto pronto para o e-mail, com os números de <b>${lastM.label}/${lastM.yr}</b> e os planos em andamento. Revise e ajuste o que quiser antes de enviar.</p>
+    <textarea id="emailTxt" style="min-height:340px">${txt}</textarea>
+    <div class="cfgbar"><button class="btn" id="copyEmail">Copiar texto</button><button class="btn ghost" id="mailtoEmail">Abrir no e-mail</button><button class="btn ghost" id="closeEmail">Fechar</button></div>`;
+  document.querySelector("#modalBg .modal").style.maxWidth="720px";
+  document.getElementById("modalBg").classList.add("show");
+  document.getElementById("copyEmail").onclick=()=>{const ta=document.getElementById("emailTxt");ta.select();try{document.execCommand("copy");navigator.clipboard&&navigator.clipboard.writeText(ta.value).catch(()=>{});toast("Texto copiado");}catch(e){toast("Selecione e copie manualmente");}};
+  document.getElementById("mailtoEmail").onclick=()=>{
+    const subject=encodeURIComponent(`Inadimplência ${lastM.label}/${lastM.yr} — consolidado`);
+    const body=encodeURIComponent(document.getElementById("emailTxt").value);
+    window.location.href=`mailto:?subject=${subject}&body=${body}`;
+  };
+  document.getElementById("closeEmail").onclick=()=>{document.querySelector("#modalBg .modal").style.maxWidth="";closeModal();};
+}
 document.getElementById("modalClose").onclick=closeModal;
 document.getElementById("modalBg").addEventListener("click",e=>{if(e.target.id==="modalBg")closeModal();});
 
