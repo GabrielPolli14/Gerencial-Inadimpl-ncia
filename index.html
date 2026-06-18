@@ -112,6 +112,17 @@
   .tabs button.on .cnt{background:rgba(255,255,255,.25)}
   td.ro{font-weight:500;color:var(--ink)}
   td.ro.totcell{font-weight:700}
+  .iconbtn.edit:hover{color:var(--blue);border-color:var(--blue);background:#f5f9ff}
+  .snapnote{font-size:11.5px;color:var(--muted);font-weight:300;margin-top:4px;font-style:italic}
+  .snapnote-box{background:var(--field);border:1px solid var(--line2);border-radius:9px;padding:10px 13px;font-size:12.5px;color:var(--ink);font-weight:400;margin-bottom:14px;white-space:pre-wrap}
+  .snaprow.editing{display:block;background:#f8faff;border:1px solid var(--line);border-radius:12px;padding:16px;margin:6px 0}
+  .snapedit{display:flex;flex-wrap:wrap;gap:12px;align-items:flex-end}
+  .snapedit .ef{display:flex;flex-direction:column;gap:4px}
+  .snapedit .ef label{font-size:10px;text-transform:uppercase;letter-spacing:.05em;color:var(--muted);font-weight:600}
+  .snapedit .ef input{width:200px}
+  .snapedit .ef input[type=date]{width:160px}
+  .snapedit .ef textarea{width:100%;min-height:54px;resize:vertical;font-family:inherit;line-height:1.4}
+  .snapedit .ef-actions{display:flex;gap:8px;flex:1 1 100%;justify-content:flex-end}
   input.money:focus{outline:2px solid var(--blue);border-color:var(--blue);background:#fff}
   .totcell{font-weight:700;font-size:14px}
   .arrow{font-size:11px;width:12px;display:inline-block;text-align:center}
@@ -663,7 +674,7 @@ function saveSnapshot(){
   if(!VIEW_NAMES[v]){toast("Abra Evolução, Detalhado ou Plano para salvar a foto");return;}
   // copia profunda (sem referências) dos dados daquela aba + os motivos vigentes (p/ leitura correta)
   const clone=x=>JSON.parse(JSON.stringify(x));
-  const snap={id:uid("s_"),view:v,ts:Date.now(),motives:clone(DB.motives)};
+  const snap={id:uid("s_"),view:v,ts:Date.now(),name:"",note:"",motives:clone(DB.motives)};
   if(v==="evolucao")snap.months=clone(DB.months);
   else if(v==="detalhado"){snap.periods=clone(DB.periods);snap.detail=clone(DB.detail);}
   else if(v==="plano")snap.actions=clone(DB.actions);
@@ -674,29 +685,61 @@ function saveSnapshot(){
 function fmtTs(ts){const d=new Date(ts);const p=n=>String(n).padStart(2,"0");return `${p(d.getDate())}/${p(d.getMonth()+1)}/${d.getFullYear()} às ${p(d.getHours())}:${p(d.getMinutes())}`;}
 
 let histTab="evolucao";
+let editingSnap=null;
+function tsToInputDate(ts){const d=new Date(ts);const p=n=>String(n).padStart(2,"0");return `${d.getFullYear()}-${p(d.getMonth()+1)}-${p(d.getDate())}`;}
+function inputDateToTs(val,oldTs){
+  if(!val)return oldTs;
+  const [y,mo,da]=val.split("-").map(Number);
+  const d=new Date(oldTs);d.setFullYear(y,mo-1,da);return d.getTime();
+}
 function renderHistorico(){
   const tabs=[["evolucao","Evolução"],["detalhado","Detalhado"],["plano","Plano de ações"]];
   const list=DB.snapshots.filter(s=>s.view===histTab).sort((a,b)=>b.ts-a.ts);
   const items=list.map(s=>{
     const isC=confirmDel==="snap"+s.id;
     let resumo="";
-    if(s.view==="evolucao"){const tt=s.months.reduce((a,m)=>{const t=(m.total!=null)?m.total:s.motives.reduce((x,mt)=>x+(mt.sum?(m.vals[mt.key]||0):0),0);return a;},0);resumo=`${s.months.length} meses`;}
+    if(s.view==="evolucao")resumo=`${s.months.length} meses`;
     else if(s.view==="detalhado")resumo=`${s.periods.length} períodos`;
     else if(s.view==="plano")resumo=`${s.actions.length} ações`;
+    if(editingSnap===s.id){
+      return `<div class="snaprow editing">
+        <div class="snapedit">
+          <div class="ef"><label>Nome do registro</label><input class="txt" id="snapName" value="${(s.name||"").replace(/"/g,'&quot;')}" placeholder="Ex: Março / Fechamento Q1"></div>
+          <div class="ef"><label>Data</label><input class="txt" type="date" id="snapDate" value="${tsToInputDate(s.ts)}"></div>
+          <div class="ef" style="flex:1 1 100%"><label>Observação</label><textarea class="txt" id="snapNote" placeholder="Anotações sobre esta foto…">${s.note||""}</textarea></div>
+          <div class="ef-actions"><button class="btn sm" data-savesnap="${s.id}">Salvar</button><button class="btn ghost sm" data-cancelsnap="1">Cancelar</button></div>
+        </div></div>`;
+    }
+    const title=s.name?s.name:fmtTs(s.ts);
+    const sub=s.name?fmtTs(s.ts):snapLabel(s.view)+" · "+resumo;
     return `<div class="snaprow">
-      <div class="snapinfo"><div class="snapdate">${fmtTs(s.ts)}</div><div class="snapmeta">${snapLabel(s.view)} · ${resumo}</div></div>
+      <div class="snapinfo">
+        <div class="snapdate">${title}</div>
+        <div class="snapmeta">${sub}${s.name?` · ${snapLabel(s.view)} · ${resumo}`:""}</div>
+        ${s.note?`<div class="snapnote">${s.note.replace(/</g,"&lt;")}</div>`:""}
+      </div>
       <button class="btn ghost sm" data-open="${s.id}">Abrir</button>
+      <button class="iconbtn edit" data-snapedit="${s.id}" title="Editar nome, data e observação"><svg viewBox="0 0 24 24"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4z"/></svg></button>
       <button class="iconbtn ${isC?'confirm':''}" data-snapdel="${s.id}">${isC?'<svg viewBox="0 0 24 24"><path d="M20 6L9 17l-5-5"/></svg>':'<svg viewBox="0 0 24 24"><path d="M3 6h18M8 6V4h8v2M19 6l-1 14H6L5 6"/></svg>'}</button>
     </div>`;
   }).join("");
   document.getElementById("content").innerHTML=`
-    <p class="lede">Fotos congeladas de cada tela, salvas por você ao longo do tempo. Use o botão <b>"Salvar foto desta tela"</b> (menu ⋮) enquanto estiver na aba que quer fotografar. Aqui elas ficam organizadas por tipo — clique em <b>Abrir</b> para ver como o quadro estava naquela data.</p>
+    <p class="lede">Fotos congeladas de cada tela, salvas por você ao longo do tempo. Use o botão <b>"Salvar foto desta tela"</b> (menu ⋮) enquanto estiver na aba que quer fotografar. Aqui elas ficam organizadas por tipo — dê um <b>nome</b> a cada foto (ex: "Março") pelo botão de editar, e clique em <b>Abrir</b> para ver como o quadro estava.</p>
     <div class="tabs">${tabs.map(t=>`<button class="${histTab===t[0]?'on':''}" data-htab="${t[0]}">${t[1]} <span class="cnt">${DB.snapshots.filter(s=>s.view===t[0]).length}</span></button>`).join("")}</div>
     <div class="panel"><div class="pb" style="padding:14px 20px">
       ${list.length?`<div class="snaplist">${items}</div>`:'<div style="padding:30px 4px;color:var(--faint);font-weight:300">Nenhuma foto de '+snapLabel(histTab)+' ainda. Vá até a aba, clique no menu ⋮ e escolha "Salvar foto desta tela".</div>'}
     </div></div>`;
-  document.querySelectorAll("[data-htab]").forEach(b=>b.onclick=()=>{histTab=b.dataset.htab;confirmDel=null;renderHistorico();});
+  document.querySelectorAll("[data-htab]").forEach(b=>b.onclick=()=>{histTab=b.dataset.htab;confirmDel=null;editingSnap=null;renderHistorico();});
   document.querySelectorAll("[data-open]").forEach(b=>b.onclick=()=>openSnapshot(b.dataset.open));
+  document.querySelectorAll("[data-snapedit]").forEach(b=>b.onclick=()=>{editingSnap=b.dataset.snapedit;confirmDel=null;renderHistorico();});
+  document.querySelectorAll("[data-cancelsnap]").forEach(b=>b.onclick=()=>{editingSnap=null;renderHistorico();});
+  document.querySelectorAll("[data-savesnap]").forEach(b=>b.onclick=()=>{
+    const s=DB.snapshots.find(x=>x.id===b.dataset.savesnap);if(!s)return;
+    s.name=document.getElementById("snapName").value.trim();
+    s.note=document.getElementById("snapNote").value;
+    s.ts=inputDateToTs(document.getElementById("snapDate").value,s.ts);
+    editingSnap=null;save();renderHistorico();toast("Registro atualizado");
+  });
   document.querySelectorAll("[data-snapdel]").forEach(b=>b.onclick=()=>{
     const id=b.dataset.snapdel;
     if(confirmDel==="snap"+id){const i=DB.snapshots.findIndex(s=>s.id===id);if(i>=0)DB.snapshots.splice(i,1);confirmDel=null;save();renderHistorico();}
@@ -731,12 +774,12 @@ function snapTableHTML(s){
 }
 function openSnapshot(id){
   const s=DB.snapshots.find(x=>x.id===id);if(!s)return;
-  document.getElementById("modalTitle").textContent="Foto · "+snapLabel(s.view);
+  document.getElementById("modalTitle").textContent=(s.name?s.name:"Foto")+" · "+snapLabel(s.view);
   document.getElementById("modalBody").innerHTML=`
-    <p class="lede" style="margin:0 0 14px">Registrado em <b>${fmtTs(s.ts)}</b>. Esta é uma foto congelada (somente leitura) — os dados aqui não mudam.</p>
+    <p class="lede" style="margin:0 0 ${s.note?'8px':'14px'}">Registrado em <b>${fmtTs(s.ts)}</b>. Esta é uma foto congelada (somente leitura) — os dados aqui não mudam.</p>
+    ${s.note?`<div class="snapnote-box">${s.note.replace(/</g,"&lt;")}</div>`:""}
     <div style="overflow-x:auto;border:1px solid var(--line2);border-radius:10px">${snapTableHTML(s)}</div>
     <div class="cfgbar"><button class="btn ghost" id="closeSnap">Fechar</button></div>`;
-  // amplia o modal para caber a tabela
   document.querySelector("#modalBg .modal").style.maxWidth="980px";
   document.getElementById("modalBg").classList.add("show");
   document.getElementById("closeSnap").onclick=()=>{document.querySelector("#modalBg .modal").style.maxWidth="";closeModal();};
