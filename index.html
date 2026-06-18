@@ -123,6 +123,23 @@
   .snapedit .ef input[type=date]{width:160px}
   .snapedit .ef textarea{width:100%;min-height:54px;resize:vertical;font-family:inherit;line-height:1.4}
   .snapedit .ef-actions{display:flex;gap:8px;flex:1 1 100%;justify-content:flex-end}
+  .notelist{display:flex;flex-direction:column}
+  .noterow{display:flex;align-items:flex-start;gap:12px;padding:14px 4px;border-bottom:1px solid var(--line2)}
+  .noterow:last-child{border-bottom:0}
+  .noteinfo{flex:1;min-width:0}
+  .notehead{display:flex;align-items:center;gap:9px;margin-bottom:5px}
+  .notetitle{font-weight:600;font-size:14px}
+  .notetag{font-size:10.5px;font-weight:700;padding:3px 9px;border-radius:20px;background:#eef4ff;color:var(--blue);white-space:nowrap}
+  .notetag.geral{background:#f0f1f6;color:var(--muted)}
+  .notebody{font-size:13px;color:var(--ink);font-weight:300;line-height:1.5;white-space:pre-wrap}
+  .notedate{font-size:11px;color:var(--faint);font-weight:300;margin-top:6px}
+  .noterow.editing{display:block;background:#f8faff;border:1px solid var(--line);border-radius:12px;padding:16px;margin:6px 0}
+  .noteedit{display:flex;flex-wrap:wrap;gap:12px;align-items:flex-end}
+  .noteedit .nf{display:flex;flex-direction:column;gap:4px}
+  .noteedit .nf label{font-size:10px;text-transform:uppercase;letter-spacing:.05em;color:var(--muted);font-weight:600}
+  .noteedit .nf input,.noteedit .nf select{width:280px}
+  .noteedit .nf textarea{width:100%;min-height:80px;resize:vertical;font-family:inherit;line-height:1.5}
+  .noteedit .nf-actions{display:flex;gap:8px;flex:1 1 100%;justify-content:flex-end}
   input.money:focus{outline:2px solid var(--blue);border-color:var(--blue);background:#fff}
   .totcell{font-weight:700;font-size:14px}
   .arrow{font-size:11px;width:12px;display:inline-block;text-align:center}
@@ -217,6 +234,7 @@
       <button data-view="detalhado"><svg class="ic" viewBox="0 0 24 24"><path d="M3 5h18M3 12h18M3 19h18"/></svg><span class="lbl">Detalhado</span></button>
       <button data-view="plano"><svg class="ic" viewBox="0 0 24 24"><path d="M9 11l3 3 8-8"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg><span class="lbl">Plano de ações</span></button>
       <button data-view="historico"><svg class="ic" viewBox="0 0 24 24"><path d="M3 3v5h5"/><path d="M3.05 13A9 9 0 1 0 6 5.3L3 8"/><path d="M12 7v5l3 3"/></svg><span class="lbl">Histórico</span></button>
+      <button data-view="notas"><svg class="ic" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6M9 13h6M9 17h4"/></svg><span class="lbl">Notas</span></button>
     </nav>
     <div class="pin"><button id="pinBtn" title="Fixar menu"><svg class="ic" viewBox="0 0 24 24"><path d="M9 4v6l-2 4h10l-2-4V4M12 18v3"/></svg></button></div>
   </aside>
@@ -262,7 +280,7 @@ const SEED_PERIODS=[
 ];
 let DB={
   motives:null, months:null, periods:null,
-  detail:{}, actions:[], pwd:"admin", refMonthId:null, snapshots:[]
+  detail:{}, actions:[], pwd:"admin", refMonthId:null, snapshots:[], notes:[]
 };
 let confirmDel=null, sideTimer=null;
 
@@ -282,6 +300,7 @@ async function load(){
   if(!DB.detail) DB.detail={};
   if(!DB.actions) DB.actions=[];
   if(!DB.snapshots) DB.snapshots=[];
+  if(!DB.notes) DB.notes=[];
   if(!DB.pwd) DB.pwd="admin";
   migrateMotives();
   // mês de referência: se não definido ou apagado, usa o último
@@ -344,7 +363,7 @@ document.getElementById("pinBtn").addEventListener("click",()=>{
 });
 
 /* ---------- routing ---------- */
-const TITLES={evolucao:["Inadimplência Gerencial","Visão consolidada"],detalhado:["Detalhado","Por período e motivo"],plano:["Plano de ações","Acompanhamento de cobrança"],historico:["Histórico","Fotos salvas das telas"],config:["Configurações","Ajustes da ferramenta"]};
+const TITLES={evolucao:["Inadimplência Gerencial","Visão consolidada"],detalhado:["Detalhado","Por período e motivo"],plano:["Plano de ações","Acompanhamento de cobrança"],historico:["Histórico","Fotos salvas das telas"],notas:["Notas","Registro de eventos do mês"],config:["Configurações","Ajustes da ferramenta"]};
 let unlocked=false;
 let currentView="evolucao"; // usada pelo "Salvar foto" contextual
 function go(v){
@@ -359,6 +378,7 @@ function go(v){
   else if(v==="detalhado")renderDetalhado();
   else if(v==="plano")renderPlano();
   else if(v==="historico")renderHistorico();
+  else if(v==="notas")renderNotas();
   else if(v==="config")unlocked?renderConfig():renderGate();
 }
 document.getElementById("nav").addEventListener("click",e=>{const b=e.target.closest("button");if(b)go(b.dataset.view);});
@@ -654,6 +674,7 @@ function renderConfig(){
           if(!DB.detail)DB.detail={};
           if(!DB.actions)DB.actions=[];
           if(!DB.snapshots)DB.snapshots=[];
+          if(!DB.notes)DB.notes=[];
           migrateMotives();
           if(!DB.refMonthId||!DB.months.some(m=>m.id===DB.refMonthId))DB.refMonthId=DB.months.length?DB.months[DB.months.length-1].id:null;
           save();updateBadge();renderConfig();toast("Backup importado");
@@ -663,6 +684,77 @@ function renderConfig(){
       reader.readAsText(f);
     };
   }
+}
+
+/* ---------- NOTAS (eventos do mês) ---------- */
+let noteFilter="all", editingNote=null;
+function monthLabel(id){const m=DB.months.find(x=>x.id===id);return m?`${m.label}/${m.yr}`:"Sem mês";}
+function renderNotas(){
+  // filtro: all | semmes | <monthId>
+  let list=DB.notes.slice().sort((a,b)=>b.ts-a.ts);
+  if(noteFilter==="semmes")list=list.filter(n=>!n.monthId);
+  else if(noteFilter!=="all")list=list.filter(n=>n.monthId===noteFilter);
+  const filterOpts=`<option value="all">Todos os registros</option><option value="semmes">Sem mês (gerais)</option>${DB.months.map(m=>`<option value="${m.id}">${m.label}/${m.yr}</option>`).join("")}`;
+  const items=list.map(n=>{
+    const isC=confirmDel==="note"+n.id;
+    if(editingNote===n.id){
+      return `<div class="noterow editing">
+        <div class="noteedit">
+          <div class="nf"><label>Título</label><input class="txt" id="noteTitle" value="${(n.title||"").replace(/"/g,'&quot;')}" placeholder="Ex: Falha sistêmica na cobrança"></div>
+          <div class="nf"><label>Mês relacionado</label><select id="noteMonth"><option value="">Sem mês (geral)</option>${DB.months.map(m=>`<option value="${m.id}" ${n.monthId===m.id?"selected":""}>${m.label}/${m.yr}</option>`).join("")}</select></div>
+          <div class="nf" style="flex:1 1 100%"><label>Anotação</label><textarea class="txt" id="noteBody" placeholder="Descreva o que ocorreu e como impactou o número…">${n.body||""}</textarea></div>
+          <div class="nf-actions"><button class="btn sm" data-savenote="${n.id}">Salvar</button><button class="btn ghost sm" data-cancelnote="1">Cancelar</button></div>
+        </div></div>`;
+    }
+    const tag=n.monthId?`<span class="notetag">${monthLabel(n.monthId)}</span>`:`<span class="notetag geral">Geral</span>`;
+    return `<div class="noterow">
+      <div class="noteinfo">
+        <div class="notehead">${tag}<span class="notetitle">${(n.title||"(sem título)").replace(/</g,"&lt;")}</span></div>
+        <div class="notebody">${(n.body||"").replace(/</g,"&lt;")||'<span style="color:var(--faint)">sem texto</span>'}</div>
+        <div class="notedate">${fmtTs(n.ts)}</div>
+      </div>
+      <button class="iconbtn edit" data-noteedit="${n.id}" title="Editar"><svg viewBox="0 0 24 24"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4z"/></svg></button>
+      <button class="iconbtn ${isC?'confirm':''}" data-notedel="${n.id}">${isC?'<svg viewBox="0 0 24 24"><path d="M20 6L9 17l-5-5"/></svg>':'<svg viewBox="0 0 24 24"><path d="M3 6h18M8 6V4h8v2M19 6l-1 14H6L5 6"/></svg>'}</button>
+    </div>`;
+  }).join("");
+  document.getElementById("content").innerHTML=`
+    <p class="lede">Registre eventos que impactaram o número em cada mês — por exemplo, "março subiu porque a cobrança não foi enviada por falha sistêmica". Amarre a nota a um mês ou deixe geral. Esses registros aparecem no boletim.</p>
+    <div class="actions-tools">
+      <button class="btn" id="addNote">+ Nova nota</button>
+      <div style="display:flex;align-items:center;gap:8px;margin-left:auto">
+        <span style="font-size:12px;color:var(--muted)">Filtrar:</span>
+        <select id="noteFilterSel">${filterOpts}</select>
+      </div>
+    </div>
+    <div class="panel"><div class="pb" style="padding:14px 20px">
+      ${list.length?`<div class="notelist">${items}</div>`:'<div style="padding:30px 4px;color:var(--faint);font-weight:300">Nenhuma nota'+(noteFilter!=="all"?" para este filtro":"")+' ainda. Clique em "Nova nota" para registrar um evento.</div>'}
+    </div></div>`;
+  const sel=document.getElementById("noteFilterSel");sel.value=noteFilter;
+  sel.onchange=()=>{noteFilter=sel.value;editingNote=null;confirmDel=null;renderNotas();};
+  document.getElementById("addNote").onclick=()=>{
+    const preMonth=(noteFilter!=="all"&&noteFilter!=="semmes")?noteFilter:"";
+    const n={id:uid("n_"),ts:Date.now(),title:"",body:"",monthId:preMonth};
+    DB.notes.push(n);editingNote=n.id;confirmDel=null;save();renderNotas();
+  };
+  document.querySelectorAll("[data-noteedit]").forEach(b=>b.onclick=()=>{editingNote=b.dataset.noteedit;confirmDel=null;renderNotas();});
+  document.querySelectorAll("[data-cancelnote]").forEach(b=>b.onclick=()=>{
+    // se era nota nova e vazia, descarta
+    const n=DB.notes.find(x=>x.id===editingNote);
+    if(n&&!n.title&&!n.body){const i=DB.notes.findIndex(x=>x.id===n.id);DB.notes.splice(i,1);save();}
+    editingNote=null;renderNotas();
+  });
+  document.querySelectorAll("[data-savenote]").forEach(b=>b.onclick=()=>{
+    const n=DB.notes.find(x=>x.id===b.dataset.savenote);if(!n)return;
+    n.title=document.getElementById("noteTitle").value.trim();
+    n.body=document.getElementById("noteBody").value;
+    n.monthId=document.getElementById("noteMonth").value||"";
+    editingNote=null;save();renderNotas();toast("Nota salva");
+  });
+  document.querySelectorAll("[data-notedel]").forEach(b=>b.onclick=()=>{
+    const id=b.dataset.notedel;
+    if(confirmDel==="note"+id){const i=DB.notes.findIndex(x=>x.id===id);if(i>=0)DB.notes.splice(i,1);confirmDel=null;save();renderNotas();}
+    else{confirmDel="note"+id;renderNotas();}
+  });
 }
 
 /* ---------- SNAPSHOTS (FOTOS) ---------- */
@@ -786,6 +878,27 @@ function openSnapshot(id){
 }
 
 /* ---------- BOLETIM ---------- */
+/* gera o SVG da curva como STRING (para o boletim), espelhando o gráfico da tela */
+function chartSVGString(){
+  const idx=DB.months.map((m,i)=>i).filter(i=>(DB.months[i].total!=null)||DB.motives.some(x=>DB.months[i].vals[x.key]!=null));
+  const data=idx.map(i=>effTotal(DB.months[i]));
+  const labels=idx.map(i=>DB.months[i]);
+  if(data.length<2)return '<p style="color:#9aa2c2;font-size:13px;padding:20px">Preencha o total de ao menos dois meses para exibir a evolução.</p>';
+  const W=1000,H=300,px=54,top=46,bot=50;
+  const mn=Math.min(...data),mx=Math.max(...data),rng=(mx-mn)||1,pad=rng*0.18,lo=mn-pad,hi=mx+pad,vr=(hi-lo)||1;
+  const X=i=>px+(i/(data.length-1))*(W-2*px), Y=v=>H-bot-((v-lo)/vr)*(H-top-bot);
+  const pts=data.map((v,i)=>[X(i),Y(v)]);
+  const grid=[0,.5,1].map(f=>{const y=top+f*(H-top-bot);return `<line x1="${px}" y1="${y.toFixed(1)}" x2="${W-px}" y2="${y.toFixed(1)}" stroke="#e6eaf3" stroke-width="1"/>`;}).join("");
+  let d=`M${pts[0][0].toFixed(2)} ${pts[0][1].toFixed(2)}`;
+  for(let i=0;i<pts.length-1;i++){const p0=pts[i-1]||pts[i],p1=pts[i],p2=pts[i+1],p3=pts[i+2]||p2;d+=`C${(p1[0]+(p2[0]-p0[0])/6).toFixed(2)} ${(p1[1]+(p2[1]-p0[1])/6).toFixed(2)} ${(p2[0]-(p3[0]-p1[0])/6).toFixed(2)} ${(p2[1]-(p3[1]-p1[1])/6).toFixed(2)} ${p2[0].toFixed(2)} ${p2[1].toFixed(2)}`;}
+  const area=d+` L${pts[pts.length-1][0].toFixed(2)} ${H-bot} L${pts[0][0].toFixed(2)} ${H-bot} Z`;
+  const col=data[data.length-1]<=data[0]?"#1bb273":"#ef4d57";
+  const lbls=labels.map((l,i)=>`<text x="${pts[i][0].toFixed(1)}" y="${H-16}" text-anchor="middle" font-size="13" fill="#9aa2c2">${l.label}/${l.yr.slice(-2)}</text>`).join("");
+  const vlbls=pts.map((q,i)=>`<text x="${q[0].toFixed(1)}" y="${(q[1]-16).toFixed(1)}" text-anchor="middle" font-size="12" fill="#11183a" font-weight="600">${MI(data[i])}</text>`).join("");
+  const dots=pts.map(q=>`<circle cx="${q[0].toFixed(1)}" cy="${q[1].toFixed(1)}" r="4.5" fill="#fff" stroke="${col}" stroke-width="2.6"/>`).join("");
+  return `<svg viewBox="0 0 ${W} ${H}" style="width:100%;height:auto"><defs><linearGradient id="bg" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="${col}" stop-opacity=".18"/><stop offset="1" stop-color="${col}" stop-opacity="0"/></linearGradient></defs>${grid}<path d="${area}" fill="url(#bg)"/><path d="${d}" fill="none" stroke="${col}" stroke-width="2.8" stroke-linejoin="round" stroke-linecap="round"/>${dots}${lbls}${vlbls}</svg>`;
+}
+
 function openBoletim(){
   closeMenu();closeRefMenu();
   const totals=DB.months.map(effTotal);
@@ -795,28 +908,106 @@ function openBoletim(){
   const lastM=DB.months[idx]||{label:"—",yr:"",vals:{}};
   const pct=prev?((last-prev)/prev*100):0;
   const dir=prev==null?"":last<prev?"redução":last>prev?"aumento":"estabilidade";
-  let txt=`BOLETIM DE INADIMPLÊNCIA — ${lastM.label}/${lastM.yr}\n`;
-  txt+=`${"=".repeat(46)}\n\n`;
-  txt+=`Inadimplência total: ${BRL(last)}\n`;
-  if(prev!=null)txt+=`Variação vs mês anterior: ${pct>0?"+":""}${pct.toFixed(1)}% (${dir})\n`;
-  txt+=`\nABERTURA POR MOTIVO (${lastM.label}/${lastM.yr}):\n`;
-  DB.motives.forEach(m=>{txt+=`  • ${m.label}: ${BRL(lastM.vals?lastM.vals[m.key]:0)}\n`;});
-  txt+=`\nEVOLUÇÃO DO TOTAL:\n`;
-  DB.months.forEach(m=>{txt+=`  ${m.label}/${m.yr}: ${BRL(effTotal(m))}\n`;});
+  const dcol=prev==null?"#6b7398":last<prev?"#1bb273":last>prev?"#ef4d57":"#6b7398";
+  const sign=prev==null?"":last<prev?"−":last>prev?"+":"";
+
+  // cards por motivo
+  const cardColors=["#2021D4","#0A64FF","#73C6FF","#a3b1e8","#6f7bd6","#b9c3ef"];
+  const motiveCards=DB.motives.map((m,i)=>`<div class="bcard" style="border-top-color:${cardColors[i%cardColors.length]}"><div class="bc-lbl">${m.label}${m.sum?"":' <span style="font-size:9px;color:#9aa2c2">(fora)</span>'}</div><div class="bc-val">${MI(lastM.vals?lastM.vals[m.key]:0)}</div></div>`).join("");
+
+  // tabela mensal
+  const mhead=`<th>Mês</th>${DB.motives.map(m=>`<th>${m.label}</th>`).join("")}<th>Total</th>`;
+  const mrows=DB.months.map(m=>`<tr><td class="lft">${m.label}/${m.yr}</td>${DB.motives.map(x=>`<td>${m.vals[x.key]!=null?BRL(m.vals[x.key]):"—"}</td>`).join("")}<td class="tt">${BRL(effTotal(m))}</td></tr>`).join("");
+
+  // tabela detalhado
+  const dv=(pid,k)=>(DB.detail[pid]&&DB.detail[pid][k]!=null)?DB.detail[pid][k]:null;
+  const ptot=pid=>DB.motives.reduce((a,m)=>a+(m.sum?(dv(pid,m.key)||0):0),0);
+  const dhead=`<th>Motivo</th>${DB.periods.map(p=>`<th>${p.label}</th>`).join("")}`;
+  const drows=DB.motives.map(m=>`<tr><td class="lft">${m.label}</td>${DB.periods.map(p=>`<td>${dv(p.id,m.key)!=null?BRL(dv(p.id,m.key)):"—"}</td>`).join("")}</tr>`).join("");
+  const dtot=`<tr class="tot"><td class="lft">TOTAL</td>${DB.periods.map(p=>`<td class="tt">${BRL(ptot(p.id))}</td>`).join("")}</tr>`;
+
+  // planos
   const done=DB.actions.filter(a=>a.status==="concluido");
-  const ongoing=DB.actions.filter(a=>a.status==="andamento"||a.status==="aberto"||a.status==="atrasado");
-  txt+=`\nPLANOS EXECUTADOS (${done.length}):\n`;
-  if(done.length)done.forEach(a=>{const mot=DB.motives.find(m=>m.key===a.motive);txt+=`  ✓ [${mot?mot.label:"-"}] ${a.action||"(sem descrição)"} — resp.: ${a.owner||"-"}\n`;});
-  else txt+=`  (nenhum plano concluído ainda)\n`;
-  txt+=`\nPLANOS EM ANDAMENTO (${ongoing.length}):\n`;
-  if(ongoing.length)ongoing.forEach(a=>{const mot=DB.motives.find(m=>m.key===a.motive);txt+=`  • [${mot?mot.label:"-"}] ${a.action||"(sem descrição)"} — resp.: ${a.owner||"-"} · prazo: ${a.due||"-"} · previsão: ${BRL(a.forecast)}\n`;});
-  else txt+=`  (nenhum plano em aberto)\n`;
-  txt+=`\n${"=".repeat(46)}\nGerado em ${new Date().toLocaleString("pt-BR")}\n`;
-  document.getElementById("modalTitle").textContent="Boletim de atualização";
-  document.getElementById("modalBody").innerHTML=`<p class="lede" style="margin:0 0 12px">Copie o texto abaixo e cole no seu e-mail.</p><textarea id="boletimTxt" readonly>${txt}</textarea><div class="cfgbar"><button class="btn" id="copyBol">Copiar texto</button><button class="btn ghost" id="closeBol">Fechar</button></div>`;
-  document.getElementById("modalBg").classList.add("show");
-  document.getElementById("copyBol").onclick=()=>{const ta=document.getElementById("boletimTxt");ta.select();try{document.execCommand("copy");toast("Boletim copiado");}catch(e){toast("Selecione e copie manualmente");}};
-  document.getElementById("closeBol").onclick=closeModal;
+  const ongoing=DB.actions.filter(a=>a.status!=="concluido");
+  const planRows=(arr)=>arr.length?arr.map(a=>{const mo=DB.motives.find(m=>m.key===a.motive);return `<tr><td class="lft">${mo?mo.label:"—"}</td><td class="lft">${(a.action||"—").replace(/</g,"&lt;")}</td><td>${a.owner||"—"}</td><td>${a.due||"—"}</td><td>${a.forecast!=null?BRL(a.forecast):"—"}</td></tr>`;}).join(""):`<tr><td colspan="5" style="color:#9aa2c2">Nenhum.</td></tr>`;
+
+  // notas do mês de referência + gerais
+  const relNotes=DB.notes.filter(n=>n.monthId===lastM.id||!n.monthId).sort((a,b)=>b.ts-a.ts);
+  const notesHTML=relNotes.length?relNotes.map(n=>`<div class="bnote"><div class="bn-h"><span class="bn-tag ${n.monthId?'':'g'}">${n.monthId?monthLabel(n.monthId):"Geral"}</span><b>${(n.title||"(sem título)").replace(/</g,"&lt;")}</b></div><div class="bn-b">${(n.body||"").replace(/</g,"&lt;")}</div></div>`).join(""):'<p style="color:#9aa2c2;font-size:13px">Nenhuma nota registrada para este mês.</p>';
+
+  const html=`<!doctype html><html lang="pt-BR"><head><meta charset="utf-8"><title>Boletim de Inadimplência — ${lastM.label}/${lastM.yr}</title>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;900&display=swap" rel="stylesheet">
+  <style>
+    *{box-sizing:border-box;margin:0;padding:0}
+    body{font-family:"Poppins",sans-serif;color:#11183a;background:#f4f6fb;padding:32px;font-weight:400}
+    .sheet{max-width:1100px;margin:0 auto;background:#fff;border-radius:16px;overflow:hidden;box-shadow:0 4px 24px rgba(16,24,58,.08)}
+    .bhead{background:#050A34;color:#fff;padding:30px 38px;display:flex;justify-content:space-between;align-items:flex-end}
+    .bhead h1{font-size:24px;font-weight:900;letter-spacing:-.02em}
+    .bhead .sub{font-size:13px;color:#9aa6d8;font-weight:300;margin-top:4px}
+    .bhead .ref{text-align:right}
+    .bhead .ref .m{font-size:20px;font-weight:700}
+    .bhead .ref .t{font-size:11px;color:#73C6FF;text-transform:uppercase;letter-spacing:.1em}
+    .sec{padding:26px 38px;border-bottom:1px solid #eef1f8}
+    .sec h2{font-size:13px;text-transform:uppercase;letter-spacing:.1em;color:#0A64FF;font-weight:600;margin-bottom:16px}
+    .hero{display:flex;gap:14px;flex-wrap:wrap;margin-bottom:16px}
+    .hero .big{background:#0A64FF;color:#fff;border-radius:14px;padding:20px 24px;min-width:240px}
+    .hero .big .l{font-size:11px;text-transform:uppercase;letter-spacing:.08em;opacity:.85}
+    .hero .big .v{font-size:34px;font-weight:900;letter-spacing:-.03em;margin-top:4px}
+    .hero .big .d{font-size:13px;margin-top:6px;opacity:.95}
+    .cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px}
+    .bcard{background:#f7f9fe;border:1px solid #e6eaf3;border-top:3px solid #0A64FF;border-radius:12px;padding:14px 16px}
+    .bc-lbl{font-size:10px;text-transform:uppercase;letter-spacing:.06em;color:#6b7398;font-weight:600}
+    .bc-val{font-size:19px;font-weight:700;margin-top:6px;letter-spacing:-.02em}
+    table{border-collapse:collapse;width:100%;font-size:12px}
+    th{background:#f4f6fb;color:#6b7398;text-transform:uppercase;font-size:9.5px;letter-spacing:.04em;font-weight:600;padding:9px 8px;text-align:right;border-bottom:1px solid #e6eaf3}
+    th:first-child{text-align:left}
+    td{padding:8px;text-align:right;border-bottom:1px solid #eef1f8;font-variant-numeric:tabular-nums}
+    td.lft{text-align:left;font-weight:600}
+    td.tt{font-weight:700;color:#0A64FF}
+    tr.tot td{background:#fffdf0;font-weight:700}
+    .tbl-wrap{overflow-x:auto}
+    .bnote{background:#f7f9fe;border:1px solid #e6eaf3;border-radius:12px;padding:14px 16px;margin-bottom:10px}
+    .bn-h{display:flex;align-items:center;gap:9px;margin-bottom:6px}
+    .bn-tag{font-size:10px;font-weight:700;padding:3px 9px;border-radius:20px;background:#eef4ff;color:#0A64FF}
+    .bn-tag.g{background:#f0f1f6;color:#6b7398}
+    .bn-b{font-size:13px;font-weight:300;line-height:1.5;white-space:pre-wrap;color:#11183a}
+    .foot{padding:18px 38px;font-size:11px;color:#9aa2c2;font-weight:300;text-align:center}
+    .toolbar{max-width:1100px;margin:0 auto 16px;display:flex;gap:10px;justify-content:flex-end}
+    .toolbar button{font-family:inherit;font-size:13px;font-weight:600;border:0;border-radius:10px;padding:10px 18px;cursor:pointer}
+    .pbtn{background:#0A64FF;color:#fff}
+    .cbtn{background:#fff;color:#0A64FF;border:1px solid #cfd6ff}
+    @media print{body{background:#fff;padding:0}.toolbar{display:none}.sheet{box-shadow:none;border-radius:0;max-width:100%}.sec{break-inside:avoid}}
+  </style></head><body>
+  <div class="toolbar"><button class="pbtn" onclick="window.print()">Imprimir / Salvar PDF</button><button class="cbtn" onclick="window.close()">Fechar</button></div>
+  <div class="sheet">
+    <div class="bhead"><div><h1>Boletim de Inadimplência</h1><div class="sub">Recuperação de Crédito · Autoglass</div></div>
+      <div class="ref"><div class="t">Mês de referência</div><div class="m">${lastM.label} / ${lastM.yr}</div></div></div>
+    <div class="sec"><h2>Resumo do mês</h2>
+      <div class="hero">
+        <div class="big"><div class="l">Inadimplência total</div><div class="v">${BRL(last)}</div>${prev!=null?`<div class="d">${sign}${Math.abs(pct).toFixed(1)}% vs mês anterior (${dir})</div>`:""}</div>
+      </div>
+      <div class="cards">${motiveCards}</div>
+    </div>
+    <div class="sec"><h2>Evolução do número geral</h2>${chartSVGString()}</div>
+    <div class="sec"><h2>Evolução mensal — por motivo</h2><div class="tbl-wrap"><table><thead><tr>${mhead}</tr></thead><tbody>${mrows}</tbody></table></div></div>
+    <div class="sec"><h2>Detalhado — por período</h2><div class="tbl-wrap"><table><thead><tr>${dhead}</tr></thead><tbody>${drows}${dtot}</tbody></table></div></div>
+    <div class="sec"><h2>Planos concluídos (${done.length})</h2><div class="tbl-wrap"><table><thead><tr><th>Motivo</th><th>Ação</th><th>Responsável</th><th>Prazo</th><th>Previsão</th></tr></thead><tbody>${planRows(done)}</tbody></table></div></div>
+    <div class="sec"><h2>Planos em andamento (${ongoing.length})</h2><div class="tbl-wrap"><table><thead><tr><th>Motivo</th><th>Ação</th><th>Responsável</th><th>Prazo</th><th>Previsão</th></tr></thead><tbody>${planRows(ongoing)}</tbody></table></div></div>
+    <div class="sec"><h2>Notas e ocorrências</h2>${notesHTML}</div>
+    <div class="foot">Gerado em ${new Date().toLocaleString("pt-BR")} · Documento interno</div>
+  </div></body></html>`;
+
+  const w=window.open("","_blank");
+  if(w){w.document.open();w.document.write(html);w.document.close();toast("Boletim visual gerado");}
+  else{
+    // popup bloqueado: fallback no modal com o HTML para copiar/salvar
+    document.getElementById("modalTitle").textContent="Boletim visual";
+    document.getElementById("modalBody").innerHTML=`<p class="lede" style="margin:0 0 12px">Seu navegador bloqueou a nova aba. Copie o conteúdo abaixo e salve como um arquivo <b>.html</b>, depois abra no navegador para imprimir/salvar em PDF.</p><textarea id="boletimTxt" readonly>${html.replace(/</g,"&lt;")}</textarea><div class="cfgbar"><button class="btn" id="copyBol">Copiar HTML</button><button class="btn ghost" id="closeBol">Fechar</button></div>`;
+    document.querySelector("#modalBg .modal").style.maxWidth="720px";
+    document.getElementById("modalBg").classList.add("show");
+    document.getElementById("copyBol").onclick=()=>{const ta=document.getElementById("boletimTxt");ta.select();try{document.execCommand("copy");toast("HTML copiado");}catch(e){toast("Selecione e copie manualmente");}};
+    document.getElementById("closeBol").onclick=()=>{document.querySelector("#modalBg .modal").style.maxWidth="";closeModal();};
+  }
 }
 function closeModal(){document.getElementById("modalBg").classList.remove("show");}
 document.getElementById("modalClose").onclick=closeModal;
